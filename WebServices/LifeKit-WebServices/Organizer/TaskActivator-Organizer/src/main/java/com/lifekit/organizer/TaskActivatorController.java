@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,10 +28,10 @@ public class TaskActivatorController {
 	@Autowired
 	TaskRepository taskRepository;
 
-	@GetMapping(value = "/activateTask")
-	public String getMessage(@RequestParam Long id) {
-		Optional<Task> item = taskRepository.findById(id);
-		inboxTaskRepository.delete((InboxTask) item.get());
+	@GetMapping(value = "/{currentType}/{id}/activate")
+	public String activateTask(@PathVariable String currentType,@PathVariable Long id) {
+		Optional<InboxTask> item = inboxTaskRepository.findById(id);
+		/* inboxTaskRepository.delete((InboxTask) item.get()); */
 		
 		return "he";
 	}

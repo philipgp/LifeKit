@@ -12,7 +12,7 @@ import javax.persistence.InheritanceType;
 
 
 @Entity(name = "ORG_TASK")
-@Inheritance(strategy = InheritanceType.JOINED)
+//@Inheritance(strategy = InheritanceType.JOINED)
 public class Task extends OrganizerEntityBase{
 
 	@Id
