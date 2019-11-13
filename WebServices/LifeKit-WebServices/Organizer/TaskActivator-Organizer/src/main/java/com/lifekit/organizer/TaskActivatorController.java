@@ -30,7 +30,7 @@ public class TaskActivatorController {
 
 	@GetMapping(value = "/{currentType}/{id}/activate")
 	public String activateTask(@PathVariable String currentType,@PathVariable Long id) {
-		Optional<InboxTask> item = inboxTaskRepository.findById(id);
+	 	//Optional<InboxTask> item = inboxTaskRepository.findById(id);
 		/* inboxTaskRepository.delete((InboxTask) item.get()); */
 		
 		return "he";

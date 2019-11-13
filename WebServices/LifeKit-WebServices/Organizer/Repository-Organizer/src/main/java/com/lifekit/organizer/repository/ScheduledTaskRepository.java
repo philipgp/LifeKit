@@ -15,7 +15,7 @@ import com.lifekit.organizer.entity.Task;
 import com.lifekit.organizer.entity.TaskType;
 import com.lifekit.organizer.entity.WaitingTask;
 
-@RepositoryRestResource(collectionResourceRel = "organizer", path = "organizer/"+TaskType.SCHEDULED_TASK_FOLDER)
+@RepositoryRestResource(collectionResourceRel = "organizer", path = TaskType.SCHEDULED_TASK_FOLDER)
 public interface ScheduledTaskRepository extends PagingAndSortingRepository<ScheduledTask, Long> {
 
 	/* List<Task> findByLastName(@Param("name") String name); */
