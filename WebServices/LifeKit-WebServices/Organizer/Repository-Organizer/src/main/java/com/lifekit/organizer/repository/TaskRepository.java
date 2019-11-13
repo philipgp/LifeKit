@@ -10,7 +10,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import com.lifekit.organizer.entity.Task;
 
-@RepositoryRestResource(collectionResourceRel = "organizer", path = "taskDetails")
+@RepositoryRestResource(collectionResourceRel = "organizer", path = "taskDetails",exported =false)
 public interface TaskRepository extends PagingAndSortingRepository<Task, Long> {
 
 	/* List<Task> findByLastName(@Param("name") String name); */
