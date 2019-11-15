@@ -1,0 +1,139 @@
+<html>
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <body>
+  <div id ="mainbody">
+  </div>
+  </body>
+  
+ <script  type="text/babel" >
+  
+    class TaskTable extends React.Component {
+  constructor(props){
+  
+  super(props);
+  this.state={filter:{taskType:'WAITING'}};
+  }
+  getElement(item){
+  if(item.taskType=='INBOX'){
+  return <InboxTaskItem key={item.id} item ={item}/>;
+  }
+  else if(item.taskType=='WAITING'){
+  return <WaitingTaskItem key={item.id} item ={item}/>;
+  }
+  }
+  stateFilter(state){
+  return this.state.filter.taskType == state.taskType;
+  }
+  applyfilter(items){
+  if(this.state.filter.taskType!=null){
+  items= items.filter(this.stateFilter,this);
+  }
+  return items;
+  }
+  render () {
+  const header = <thead><tr><td>ID</td><td>Name</td><td>Type</td></tr></thead>;
+var filteredItems = this.applyfilter(this.props.items)  ;
+	const items = filteredItems.map((item)=>this.getElement(item));
+	const body=<tbody>{items}</tbody>;
+    return <table>{header}{body}</table>;
+	
+  }
+}
+
+  class InboxTaskItem extends React.Component {
+  constructor(props){
+  super(props);
+  }
+  render () {
+    return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td>--Inbox--</td></tr>
+  }
+}
+  class WaitingTaskItem extends React.Component {
+  constructor(props){
+  super(props);
+  }
+  render () {
+    return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td>Waiting...</td></tr>
+  }
+}
+
+var items = {
+  
+  "tasks": [
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 1,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 2,
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "INBOX"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 3,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 4,
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "WAITING"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 5,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 6,
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "WAITING"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 7,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 8,
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "WAITING"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 9,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 10,
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "WAITING"
+    }
+  ]
+
+}
+  
+
+  ReactDOM.render(<TaskTable items ={items.tasks} />,document.getElementById("mainbody"));
+  
+ </script>
+  </html>
+  
