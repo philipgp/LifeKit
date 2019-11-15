@@ -8,55 +8,183 @@
   </body>
   
  <script  type="text/babel" >
-  
-    class TaskTable extends React.Component {
-  constructor(props){
-  
-  super(props);
-  this.state={filter:{taskType:'WAITING'}};
-  }
-  getElement(item){
-  if(item.taskType=='INBOX'){
-  return <InboxTaskItem key={item.id} item ={item}/>;
-  }
-  else if(item.taskType=='WAITING'){
-  return <WaitingTaskItem key={item.id} item ={item}/>;
-  }
-  }
-  stateFilter(state){
-  return this.state.filter.taskType == state.taskType;
-  }
-  applyfilter(items){
-  if(this.state.filter.taskType!=null){
-  items= items.filter(this.stateFilter,this);
-  }
-  return items;
-  }
-  render () {
-  const header = <thead><tr><td>ID</td><td>Name</td><td>Type</td></tr></thead>;
-var filteredItems = this.applyfilter(this.props.items)  ;
-	const items = filteredItems.map((item)=>this.getElement(item));
-	const body=<tbody>{items}</tbody>;
-    return <table>{header}{body}</table>;
+ 
+ 
+ class TaskTypeFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.setTaskType = this.setTaskType.bind(this);
+	}
+	setTaskType(taskType){
+		this.props.onTaskTypeChange(taskType);
+	}
+	render() {
+		return <div>
 	
-  }
+		<input type ='radio' onChange={this.setTaskType.bind(this,'ALL')} name = 'tasktype' value = 'ALL'/><span>ALL</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'ACTIVE')} name = 'tasktype' value = 'ACTIVE'/><span>Active</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'INBOX')}  name = 'tasktype' value = 'INBOX'/><span>Inbox</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'SCHEDULED')}  name = 'tasktype' value = 'SCHEDULED'/><span>Scheduled</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'WAITING')}  name = 'tasktype' value = 'WAITING'/><span>Waiting</span>
+		</div>
+	}
 }
 
-  class InboxTaskItem extends React.Component {
-  constructor(props){
-  super(props);
-  }
-  render () {
-    return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td>--Inbox--</td></tr>
-  }
+class AreaFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.setArea = this.setArea.bind(this);
+	}
+	setArea(taskType){
+		this.props.onAreaTypeChange(taskType);
+	}
+	hasArea(item){
+	if(item.taskDetails.area!=null)
+		return true;
+	else
+		return false;
+	}
+	isAlreadyAdded(items,item){
+	for(var i=0;i<items.length;i++){
+		var citem =items[i];	
+		if(citem.key == item.taskDetails.area.name)
+			return true;
+	}
+		return false;
+	}
+	
+	getAllAreas(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasArea(item) && !this.isAlreadyAdded(allItems,item)){
+			allItems.push(<span key={item.taskDetails.area.name}><input type ='radio' onChange={this.setArea.bind(this,item.taskDetails.area.name)} name = 'areatype' value = 'ALL2'/><span>{item.taskDetails.area.description}</span></span>);
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	render() {
+	var allAreasComponent=this.getAllAreas();
+		return <div>
+		
+		<input type ='radio' onChange={this.setArea.bind(this,'ALL')} name = 'areatype' value = 'ALL'/><span>ALL</span>
+		{allAreasComponent}
+		</div>
+	}
 }
-  class WaitingTaskItem extends React.Component {
-  constructor(props){
-  super(props);
-  }
-  render () {
-    return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td>Waiting...</td></tr>
-  }
+
+ class FilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> --Inbox-- </td></tr>
+	}
+}
+
+  class TaskTable extends React.Component {
+	constructor(props) {
+
+		super(props);
+		this.state = {
+			filter: {
+				taskType: null,
+				areaType:null
+				
+			}
+		};
+		this.setTaskType = this.setTaskType.bind(this);
+		this.setAreaType = this.setAreaType.bind(this);
+	}
+	getElement(item) {
+		if (item.taskType == 'INBOX') {
+			return <InboxTaskItem key = {item.id}	item = {item}/>;
+		} else if (item.taskType == 'WAITING') {
+			return <WaitingTaskItem key = {item.id} item = {item}/>;
+		}else if (item.taskType == 'ACTIVE') {
+			return <ActiveTaskItem key = {item.id	} item = {item}/>;
+		}else if (item.taskType == 'SCHEDULED') {
+			return <ScheduledTaskItem key = {	item.id	} item = {item}/>;
+		}
+	}
+	stateFilter(state) {
+		return this.state.filter.taskType == state.taskType;
+	}
+	areaFilter(state) {
+		return this.state.filter.areaType == state.taskDetails.area.name;
+	}
+	applyfilter(items) {
+		if (this.state.filter.taskType != null) {
+			items = items.filter(this.stateFilter, this);
+		}
+		if (this.state.filter.areaType != null) {
+			items = items.filter(this.areaFilter, this);
+		}
+		return items;
+	}
+	setAreaType(areaType){
+		var currentFilter =this.state.filter;
+		if(areaType!='ALL')
+			currentFilter.areaType = areaType;
+		else
+			currentFilter.areaType = null;
+		this.setState(this.state);
+	}
+	
+	setTaskType(taskType){
+		var currentFilter =this.state.filter;
+		if(taskType!='ALL')
+			currentFilter.taskType = taskType;
+		else
+			currentFilter.taskType = null;
+		this.setState(this.state);
+	}
+	render() {
+		
+		const header = <thead><tr><td>ID</td><td>Name</td><td>Type</td></tr></thead>;
+		var filteredItems = this.applyfilter(this.props.items);
+		const filter = <div><TaskTypeFilterComponent onTaskTypeChange={this.setTaskType}/><AreaFilterComponent items={filteredItems} onAreaTypeChange={this.setAreaType} /></div>;
+		const items = filteredItems.map((item) => this.getElement(item));
+		const body = <tbody>{items}</tbody>;
+		return <div>{filter}<table>{header}{body}</table></div>;
+
+	}
+}
+
+class InboxTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> --Inbox-- </td></tr>
+	}
+}
+class WaitingTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Waiting... </td></tr>
+	}
+}
+class ScheduledTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Scheduled... </td></tr>
+	}
+}
+
+class ActiveTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Active... < /td></tr>
+	}
 }
 
 var items = {
@@ -70,6 +198,10 @@ var items = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 2,
+		"area":{
+			"name":"PERSONAL",
+			"description":"Personal"
+		},
         "name": "firstName",
         "completedDate": null
       },
@@ -83,6 +215,10 @@ var items = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 4,
+			"area":{
+			"name":"PERSONAL",
+			"description":"Personal"
+		},
         "name": "firstName",
         "completedDate": null
       },
@@ -96,10 +232,14 @@ var items = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 6,
+		"area":{
+			"name":"WORK",
+			"description":"Work"
+		},
         "name": "firstName",
         "completedDate": null
       },
-      "taskType": "WAITING"
+      "taskType": "SCHEDULED"
     },
     {
       "createdDate": null,
@@ -109,10 +249,14 @@ var items = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 8,
+		"area":{
+			"name":"FAMILY",
+			"description":"Family"
+		},
         "name": "firstName",
         "completedDate": null
       },
-      "taskType": "WAITING"
+      "taskType": "ACTIVE"
     },
     {
       "createdDate": null,
@@ -122,6 +266,10 @@ var items = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 10,
+		"area":{
+			"name":"WORK",
+			"description":"Work"
+		},
         "name": "firstName",
         "completedDate": null
       },
