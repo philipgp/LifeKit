@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 
 
 @Entity(name = "ORG_WAITING_TASK")
-public class WaitingTask extends OrganizerEntityBase{
+public class WaitingTask extends OrganizerEntityBase implements TaskInterface{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -43,6 +43,12 @@ public class WaitingTask extends OrganizerEntityBase{
 
 	public void setTaskDetails(Task taskDetails) {
 		this.taskDetails = taskDetails;
+	}
+
+
+	@Override
+	public TaskType getTaskType() {
+		return TaskType.WAITING;
 	}
 	
 }

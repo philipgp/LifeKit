@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 
 
 @Entity(name = "ORG_ACTIVE_TASK")
-public class ActiveTask extends OrganizerEntityBase{
+public class ActiveTask extends OrganizerEntityBase implements TaskInterface{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -40,6 +40,11 @@ public class ActiveTask extends OrganizerEntityBase{
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	@Override
+	public TaskType getTaskType() {
+		return TaskType.ACTIVE;
 	}
 	
 }

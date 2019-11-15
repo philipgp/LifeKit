@@ -25,6 +25,7 @@ dependencies {
 //compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.18'
 compile( project(':Repository-Organizer') )
 compile( project(':TaskActivator-Organizer') )
+compile( project(':AllTaskRetriever-Organizer') )
 
 // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
 	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'

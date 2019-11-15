@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 
 
 @Entity(name = "ORG_SCHEDULED_TASK")
-public class ScheduledTask extends OrganizerEntityBase{
+public class ScheduledTask extends OrganizerEntityBase implements TaskInterface{
 
 	
 	@Id
@@ -40,6 +40,11 @@ public class ScheduledTask extends OrganizerEntityBase{
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	@Override
+	public TaskType getTaskType() {
+		return TaskType.SCHEDULED;
 	}
 	
 }

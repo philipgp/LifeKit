@@ -2,6 +2,7 @@ package com.lifekit.organizer;
 
 
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,11 +45,20 @@ public class AllTaskRetrieverController {
 	public AllTaskResponse getAll() {
 		
 		AllTaskResponse response = new AllTaskResponse();
-		response.setActiveTasks((List<ActiveTask>) activeTaskRepository.findAll());
-		response.setInboxTasks((List<InboxTask>) inboxTaskRepository.findAll());
-		response.setWaitingTasks((List<WaitingTask>) ( waitingTaskRepository.findAll()));
-		
-		response.setScheduledTasks((List<ScheduledTask>) ( scheduledTaskRepository.findAll()));
+		List items = (List) activeTaskRepository.findAll();
+		items.addAll((Collection) inboxTaskRepository.findAll());
+		items.addAll((Collection) waitingTaskRepository.findAll());
+		items.addAll((Collection) scheduledTaskRepository.findAll());
+		response.setTasks(items);
+		/*
+		 * response.setActiveTasks((List<ActiveTask>) activeTaskRepository.findAll());
+		 * response.setInboxTasks((List<InboxTask>) inboxTaskRepository.findAll());
+		 * response.setWaitingTasks((List<WaitingTask>) (
+		 * waitingTaskRepository.findAll()));
+		 * 
+		 * response.setScheduledTasks((List<ScheduledTask>) (
+		 * scheduledTaskRepository.findAll()));
+		 */
 		return response;
 	}
 }

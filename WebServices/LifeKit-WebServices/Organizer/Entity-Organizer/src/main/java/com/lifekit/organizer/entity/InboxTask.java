@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 
 
 @Entity(name = "ORG_INBOX_TASK")
-public class InboxTask extends OrganizerEntityBase{
+public class InboxTask extends OrganizerEntityBase implements TaskInterface{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,6 +38,11 @@ public class InboxTask extends OrganizerEntityBase{
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	@Override
+	public TaskType getTaskType() {
+		return TaskType.INBOX;
 	}
 	
 }
