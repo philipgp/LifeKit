@@ -1,0 +1,108 @@
+<html>
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <body>
+  <div id ="mainbody">
+  </div>
+  </body>
+  
+  <script type="text/babel">
+    class TaskTable extends React.Component {
+  constructor(props){
+  super(props);
+  }
+  render () {
+  const header = <thead><tr><td>ID</td><td>Name</td></tr></thead>;
+  
+	const items = this.props.items._embedded.organizer.map((item)=><InboxTaskItem key={item.id} item ={item}/>);
+	const body=<tbody>{items}</tbody>;
+    return <table>{header}{body}</table>;
+	//console.log(this.props);
+	//return <div>asdf</div>;
+  }
+}
+
+  class InboxTaskItem extends React.Component {
+  constructor(props){
+  super(props);
+  }
+  render () {
+    return <tr><td>{this.props.item.id}</td><td>{this.props.item.name}</td></tr>
+  }
+}
+
+
+var items = {
+  "_embedded" : {
+    "organizer" : [ {
+      "createdDate" : null,
+      "lastModifiedDate" : null,
+	  "id":1,
+	  "name":"task1",
+      "_links" : {
+        "self" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/1"
+        },
+        "inboxTask" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/1"
+        },
+        "taskDetails" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/1/taskDetails"
+        }
+      }
+    }, {
+      "createdDate" : null,
+      "lastModifiedDate" : null,
+	  "id":2,
+	  "name":"task2",
+      "_links" : {
+        "self" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/3"
+        },
+        "inboxTask" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/3"
+        },
+        "taskDetails" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/3/taskDetails"
+        }
+      }
+    }, {
+      "createdDate" : null,
+      "lastModifiedDate" : null,
+	  "id":3,
+	  "name":"task3",
+      "_links" : {
+        "self" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/4"
+        },
+        "inboxTask" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/4"
+        },
+        "taskDetails" : {
+          "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks/4/taskDetails"
+        }
+      }
+    } ]
+  },
+  "_links" : {
+    "self" : {
+      "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/inboxtasks{?page,size,sort}",
+      "templated" : true
+    },
+    "profile" : {
+      "href" : "http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/profile/inboxtasks"
+    }
+  },
+  "page" : {
+    "size" : 20,
+    "totalElements" : 3,
+    "totalPages" : 1,
+    "number" : 0
+  }
+}
+
+  ReactDOM.render(<TaskTable items ={items} />,document.getElementById("mainbody"));
+  </script>
+  </html>
+  
