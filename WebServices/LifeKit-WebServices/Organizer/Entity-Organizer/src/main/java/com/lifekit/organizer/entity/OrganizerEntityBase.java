@@ -7,12 +7,16 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public class OrganizerEntityBase {
 
+	public OrganizerEntityBase() {
+		createdDate = new Date();
+	}
 	
 private Date createdDate;
 	
 	private Date lastModifiedDate;
 	
 	
+	//@JsonFormat(pattern ="dd-MM-yyyy HH:mm")
 	public Date getCreatedDate() {
 		return createdDate;
 	}

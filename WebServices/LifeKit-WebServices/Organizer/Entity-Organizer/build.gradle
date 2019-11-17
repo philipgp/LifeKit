@@ -26,8 +26,10 @@ dependencies {
 
 // https://mvnrepository.com/artifact/javax.persistence/javax.persistence-api
 compile group: 'javax.persistence', name: 'javax.persistence-api', version: '2.2'
+// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+//compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.10.1'
 
-//compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.18'
+compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.18'
 
 // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
 	//compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
