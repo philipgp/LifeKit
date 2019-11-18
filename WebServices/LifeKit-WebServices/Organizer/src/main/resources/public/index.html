@@ -10,9 +10,9 @@
   <div id ="mainbody">
   </div>
   </body>
-  
+    
  <script  type="text/babel" >
- 
+  
  
  class TaskTypeFilterComponent extends React.Component {
 	constructor(props) {
@@ -78,8 +78,33 @@ class ProjectFilterComponent extends React.Component {
 		</div>
 	}
 }
+var context="http://localhost:8080/organizer";
 
-
+class AddNewItemComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.addNewItem = this.addNewItem.bind(this);
+		
+	}
+	addNewItem(){
+		var textData =document.getElementById("input").value;	
+		fetch(context+'/api/data/inboxtasks', {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    taskDetails:{
+		name:textData
+	}
+  })
+}).then(this.props.onItemAdded())
+	}
+	render(){
+		return <div><input id="input"  type="text" /><button type="button"  onClick={(e) => this.addNewItem(this.props.text, e)}>Add New Item</button></div>
+	}
+}
 class AreaFilterComponent extends React.Component {
 	constructor(props) {
 		super(props);
@@ -136,6 +161,8 @@ class AreaFilterComponent extends React.Component {
 class Organizer extends React.Component {
 	constructor(props) {
 		super(props);
+		this.onItemAdded = this.onItemAdded.bind(this);
+		this.componentDidMount = this.componentDidMount.bind(this);
     this.state = {
       error: null,
       isLoaded: false,
@@ -143,7 +170,7 @@ class Organizer extends React.Component {
     };
 	}
 	componentDidMount() {
-    fetch("http://testjava-env-1.xgrvmpgarb.us-east-2.elasticbeanstalk.com/organizer/getAll")
+    fetch(context+"/getAll")
       .then(res => res.json())
       .then(
         (result) => {
@@ -163,7 +190,11 @@ class Organizer extends React.Component {
         }
       )
   }
+  onItemAdded(){
+	this.componentDidMount();
+  }
 	render() {
+		//this.componentDidMount2();
 		const { error, isLoaded, items } = this.state;
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -171,9 +202,9 @@ class Organizer extends React.Component {
       return <div>Loading...</div>;
     } else {
       return (
-        <TaskTable items ={items} />
+        <div><TaskTable items ={items} /><AddNewItemComponent onItemAdded={this.onItemAdded} text='asdf'/></div>
       );
-    }
+    } 
 	}
 }
   class TaskTable extends React.Component {
