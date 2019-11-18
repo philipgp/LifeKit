@@ -78,7 +78,7 @@ class ProjectFilterComponent extends React.Component {
 		</div>
 	}
 }
-var context="http://localhost:8080/organizer";
+var context="/organizer";
 
 class AddNewItemComponent extends React.Component {
 	constructor(props) {
@@ -88,7 +88,7 @@ class AddNewItemComponent extends React.Component {
 	}
 	addNewItem(){
 		var textData =document.getElementById("input").value;	
-		fetch(context+'/api/data/inboxtasks', {
+		 fetch(context+'/api/data/inboxtasks', {
   method: 'POST',
   headers: {
     'Accept': 'application/json',
@@ -99,7 +99,13 @@ class AddNewItemComponent extends React.Component {
 		name:textData
 	}
   })
-}).then(this.props.onItemAdded())
+		}).then(res => res.json())
+      .then(
+        (result) => {
+			this.props.onItemAdded();
+        });
+
+
 	}
 	render(){
 		return <div><input id="input"  type="text" /><button type="button"  onClick={(e) => this.addNewItem(this.props.text, e)}>Add New Item</button></div>
