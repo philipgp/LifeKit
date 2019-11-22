@@ -1,7 +1,10 @@
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<head>
-			
+			<style>
+
+	.displayNone { display:none; }
+			</style>
 <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
@@ -14,6 +17,27 @@
  <script  type="text/babel" >
   
  
+  class TaskTypeFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.state = {currentTaskType: this.props.currentTaskType};
+	}
+	handleTaskTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onTaskTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentTaskType} onChange={this.handleTaskTypeChange}>
+			<option value="ALL">ALL</option>
+		<option value="ACTIVE">Active</option>
+		<option value="INBOX">Inbox</option>
+		<option value="WAITING">Waiting</option>
+		<option value="SCHEDULED">Scheduled</option>
+		</select>
+	}
+}
+/*
  class TaskTypeFilterComponent extends React.Component {
 	constructor(props) {
 		super(props);
@@ -33,14 +57,16 @@
 		</div>
 	}
 }
-
+*/
 class ProjectFilterComponent extends React.Component {
 	constructor(props) { 
 		super(props);
 		this.setProject = this.setProject.bind(this);
+		this.state = {currentProject: 'ALL'};
 	}
 	setProject(project){
-		this.props.onProjectChange(project);
+		this.setState({currentProject: project.target.value});
+		this.props.onProjectChange(project.target.value);
 	}
 	hasProject(item){
 	if(item.taskDetails.project!=null)
@@ -63,7 +89,7 @@ class ProjectFilterComponent extends React.Component {
 	for(var i=0;i<this.props.items.length;i++){
 		var item =this.props.items[i];
 		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
-		allItems.push(<span key={item.taskDetails.project.name}><input type ='radio' onChange={this.setProject.bind(this,item.taskDetails.project.name)} name = 'project' value = {item.taskDetails.project.name}/><span>{item.taskDetails.project.name}</span></span>);
+		allItems.push(<option key={item.taskDetails.project.name} name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);
 		}
 		//console.log(item)
 	}
@@ -72,9 +98,10 @@ class ProjectFilterComponent extends React.Component {
 	render() {
 	var allProjectsComponent=this.getAllProjects();
 		return <div>
-		
-		<input type ='radio' onChange={this.setProject.bind(this,'ALL')} name = 'project' value = 'ALL'/><span>ALL</span>
+			<select value={this.state.currentProject} onChange={this.setProject}>
+		<option name = 'project' key="ALL" value = 'ALL'>ALL</option>
 		{allProjectsComponent}
+		</select>
 		</div>
 	}
 }
@@ -112,6 +139,26 @@ class AddNewItemComponent extends React.Component {
 	}
 }
 class AreaFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleAreaTypeChange = this.handleAreaTypeChange.bind(this);
+		this.state = {currentAreaType: this.props.currentAreaType};
+	}
+	handleAreaTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onAreaTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentAreaType} onChange={this.handleAreaTypeChange}>
+			<option value="ALL">ALL</option>
+		<option value="PERSONAL">Personal</option>
+		<option value="WORK">Work</option>
+		<option value="FAMILY">Family</option>
+		
+		</select>
+	}
+}
+/*class AreaFilterComponent extends React.Component {
 	constructor(props) {
 		super(props);
 		this.setArea = this.setArea.bind(this);
@@ -155,7 +202,7 @@ class AreaFilterComponent extends React.Component {
 		</div>
 	}
 }
-
+*/
  class FilterComponent extends React.Component {
 	constructor(props) {
 		super(props);
@@ -208,7 +255,7 @@ class Organizer extends React.Component {
       return <div>Loading...</div>;
     } else {
       return (
-        <div><TaskTable items ={items} /><AddNewItemComponent onItemAdded={this.onItemAdded} text='asdf'/></div>
+        <div><AddNewItemComponent onItemAdded={this.onItemAdded} text='asdf'/><TaskTable onItemChanged={this.onItemAdded} items ={items} /></div>
       );
     } 
 	}
@@ -221,30 +268,32 @@ class Organizer extends React.Component {
 			filter: {
 				taskType: null,
 				project: null,
-				areaType:null
-				
+				areaType:null,
+				showCompletedItems:false
 			}
 		};
 		this.setTaskType = this.setTaskType.bind(this);
 		this.setAreaType = this.setAreaType.bind(this);
 		this.setProject = this.setProject.bind(this);
+		this.setShowCompletedItems = this.setShowCompletedItems.bind(this);
+		
 	}
-	getElement(item) {
-		if (item.taskType == 'INBOX') {
-			return <InboxTaskItem key = {item.id}	item = {item}/>;
-		} else if (item.taskType == 'WAITING') {
-			return <WaitingTaskItem key = {item.id} item = {item}/>;
-		}else if (item.taskType == 'ACTIVE') {
-			return <ActiveTaskItem key = {item.id	} item = {item}/>;
-		}else if (item.taskType == 'SCHEDULED') {
-			return <ScheduledTaskItem key = {	item.id	} item = {item}/>;
-		}
-	}
+	
 	stateFilter(state) {
 		return this.state.filter.taskType == state.taskType;
 	}
 	areaFilter(state) {
-		return this.state.filter.areaType == state.taskDetails.area.name;
+		return this.state.filter.areaType == state.taskDetails.area;
+	}
+	completedItemsFilter(state) {
+		if(!this.state.filter.showCompletedItems){
+			if(state.taskDetails.completedDate==null)
+			return true;
+			else 
+			return false;
+		}
+		else
+		return true;
 	}
 	projectFilter(state) {
 		if(state.taskDetails.project!=null)
@@ -258,8 +307,12 @@ class Organizer extends React.Component {
 		}
 		if (this.state.filter.areaType != null) {
 			items = items.filter(this.areaFilter, this);
-		}if (this.state.filter.project != null) {
+		}
+		if (this.state.filter.project != null) {
 			items = items.filter(this.projectFilter, this);
+		}
+		if (this.state.filter.showCompletedItems != null) {
+			items = items.filter(this.completedItemsFilter, this);
 		}
 		return items;
 	}
@@ -289,24 +342,83 @@ class Organizer extends React.Component {
 			currentFilter.taskType = null;
 		this.setState(this.state);
 	}
+	setShowCompletedItems(taskType){
+		var currentFilter =this.state.filter;
+		
+		currentFilter.showCompletedItems = taskType.target.checked;
+		
+		this.setState(this.state);
+	}
 	render() {
 		
 		const header = <thead><tr><td>ID</td><td>Name</td><td>Type</td></tr></thead>;
 		var filteredItems = this.applyfilter(this.props.items);
-		const filter = <div><TaskTypeFilterComponent onTaskTypeChange={this.setTaskType}/><AreaFilterComponent items={filteredItems} onAreaTypeChange={this.setAreaType} /><ProjectFilterComponent items={filteredItems} onProjectChange={this.setProject} /></div>;
-		const items = filteredItems.map((item) => this.getElement(item));
+		const filter = <table><thead><tr><td colSpan="2"><b>Filter</b></td></tr></thead><tbody>
+		<tr><td>Task Type</td><td><TaskTypeFilterComponent onTaskTypeChange={this.setTaskType}/></td></tr>
+		<tr><td>Area Type</td><td><AreaFilterComponent  onAreaTypeChange={this.setAreaType} /></td></tr>
+		<tr><td>Show completed items</td><td><input onChange={this.setShowCompletedItems} type="checkbox" name="incompletefilter" value="Bike"/></td></tr>
+		<tr><td>Project</td><td><ProjectFilterComponent items={filteredItems} onProjectChange={this.setProject} /></td></tr>
+		</tbody></table>;
+
+		var items=[];
+		for(var i=0;i<filteredItems.length;i++){
+		var item =filteredItems[i];
+		var detailKey =item.id+"taskItemKey";
+		//items.push(this.getElement(item));
+		items.push(<TaskItem  onItemChanged={this.props.onItemChanged} key={detailKey} item={item} items={filteredItems}/>);
+
+		}		 
+		//const items = filteredItems.map((item) => this.getElement(item,filteredItems));
 		const body = <tbody>{items}</tbody>;
 		return <div>{filter}<table>{header}{body}</table></div>;
 
 	}
 }
+class TaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state={
+			displayClass:"displayNone"
+		}
+		this.toggleDetails = this.toggleDetails.bind(this);
+	}
 
+	toggleDetails(){
+		if(this.state.displayClass=='displayNone')
+			this.setState({displayClass:""});
+		else
+			this.setState({displayClass:"displayNone"});
+	}
+	
+
+	getElement(item) {
+		var allItem;
+		if (item.taskType == 'INBOX') {
+			allItem= <InboxTaskItem toggleDetails={this.toggleDetails} key = {item.id}	item = {item}/>;
+		} else if (item.taskType == 'WAITING') {
+			allItem= <WaitingTaskItem toggleDetails={this.toggleDetails} key = {item.id} item = {item}/>;
+		}else if (item.taskType == 'ACTIVE') {
+			allItem= <ActiveTaskItem toggleDetails={this.toggleDetails} key = {item.id	} item = {item}/>;
+		}else if (item.taskType == 'SCHEDULED') {
+			allItem= <ScheduledTaskItem toggleDetails={this.toggleDetails} key = {	item.id	} item = {item}/>;
+		}
+		return allItem
+	}
+	render() {
+		var itemsAll=[];
+		var detailKey =this.props.item.id+"details";
+		itemsAll.push(this.getElement(this.props.item));
+		itemsAll.push(<TaskDetailsComponent onItemChanged ={this.props.onItemChanged} key={detailKey} displayClass={this.state.displayClass} currentItem={this.props.item} items={this.props.items}/>);
+		return itemsAll;
+	}
+}
 class InboxTaskItem extends React.Component {
 	constructor(props) {
 		super(props);
+		
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> --Inbox-- </td></tr>
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
 	}
 }
 class WaitingTaskItem extends React.Component {
@@ -314,7 +426,7 @@ class WaitingTaskItem extends React.Component {
 		super(props);
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Waiting... </td></tr>
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
 	}
 }
 class ScheduledTaskItem extends React.Component {
@@ -322,7 +434,7 @@ class ScheduledTaskItem extends React.Component {
 		super(props);
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Scheduled... </td></tr>
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
 	}
 }
 
@@ -331,7 +443,7 @@ class ActiveTaskItem extends React.Component {
 		super(props);
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> Active... </td></tr>
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
 	}
 }
 var items = {
@@ -384,10 +496,7 @@ var items2 = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 2,
-		"area":{
-			"name":"PERSONAL",
-			"description":"Personal"
-		},
+		"area":"PERSONAL",
         "name": "firstName",
         "completedDate": null
       },
@@ -401,10 +510,7 @@ var items2 = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 4,
-			"area":{
-			"name":"PERSONAL",
-			"description":"Personal"
-		},
+		"area":"PERSONAL",
         "name": "firstName",
         "completedDate": null
       },
@@ -418,10 +524,7 @@ var items2 = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 6,
-		"area":{
-			"name":"WORK",
-			"description":"Work"
-		},
+		"area":"WORK",
         "name": "firstName",
         "completedDate": null
       },
@@ -435,10 +538,11 @@ var items2 = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 8,
-		"area":{
-			"name":"FAMILY",
-			"description":"Family"
+		"project":{
+			"name":"Doha Trip"
+			
 		},
+		"area":"FAMILY",
         "name": "firstName",
         "completedDate": null
       },
@@ -452,26 +556,234 @@ var items2 = {
         "createdDate": null,
         "lastModifiedDate": null,
         "id": 10,
-		"area":{
-			"name":"WORK",
-			"description":"Work"
-		},
+		"area":"WORK",
 		"project":{
 			"name":"Bhopal Trip"
 			
 		},
         "name": "firstName",
-        "completedDate": null
+        "completedDate": "22-May"
       },
       "taskType": "WAITING"
-    }
+    }		
   ]
 
 }
-  
 
-  ReactDOM.render(<Organizer  />,document.getElementById("mainbody"));
-  
+class TaskType extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.state = {currentTaskType: this.props.currentTaskType};
+	}
+	handleTaskTypeChange(event){
+		this.setState({currentTaskType: event.target.value});
+		this.props.onTaskTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentTaskType} onChange={this.handleTaskTypeChange}>
+		<option value="INBOX">Inbox</option>
+		<option value="ACTIVE">Active</option>
+		<option value="SCHEDULED">Scheduled</option>
+		<option value="WAITING">Waiting</option>
+		</select>
+	}
+}
+
+class AreaType extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleAreaTypeChange = this.handleAreaTypeChange.bind(this);
+		this.state = {currentAreaType: ''};
+		if(this.props.currentAreaType!=undefined)
+			this.state.currentAreaType=this.props.currentAreaType;
+	}
+	handleAreaTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onAreaTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentAreaType} onChange={this.handleAreaTypeChange}>
+		<option value="">None</option>
+		<option value="PERSONAL">Personal</option>
+		<option value="WORK">Work</option>
+		<option value="FAMILY">Family</option>
+		
+		</select>
+	}
+}
+class TaskDetailsComponent extends React.Component {
+	constructor(props) { 
+		super(props);
+		this.handleTaskNameChange = this.handleTaskNameChange.bind(this);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.onProjectChange = this.onProjectChange.bind(this);
+		this.onAreaTypeChange = this.onAreaTypeChange.bind(this);
+		this.handeMarkAsCompleted = this.handeMarkAsCompleted.bind(this);
+		
+		this.doSave = this.doSave.bind(this);
+		this.state={
+			taskName:this.props.currentItem.taskDetails.name,
+			taskType:this.props.currentItem.taskType,
+			currentArea:this.props.currentItem.area,
+			completedDate:this.props.currentItem.taskDetails.completedDate,
+			completedFlag:false,
+			currentProject:'',
+			
+		}
+		if(this.props.currentItem.taskDetails.completedDate!=null)
+		this.state.completedFlag=true;
+		if(this.props.currentItem.taskDetails.project!=null){
+			this.state.currentProject=this.props.currentItem.taskDetails.project.name;
+		
+		}
+	
+
+	}
+	handleTaskNameChange(event) {
+    this.setState({taskName: event.target.value});
+ 	 }
+
+	  onProjectChange(event) {
+    this.setState({currentProject: event});
+ 	 }
+	  onAreaTypeChange(event) {
+    this.setState({currentArea: event});
+ 	 }
+	  handeMarkAsCompleted(event){
+		  if(event.target.checked){
+			  this.setState({completedDate:new Date,completedFlag:true})
+		  }else{
+			this.setState({completedDate:null,completedFlag:false})
+		  }
+	  }
+
+	  handleTaskTypeChange(value) {
+    	this.setState({taskType: value});
+ 	 }
+	  doSave(){
+		fetch(context+'/updateTask', {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+	  id:this.props.currentItem.taskDetails.id,
+	  previousTaskType:this.props.currentItem.taskType,
+	  currentTaskType:this.state.taskType,
+	  area:this.state.currentArea,
+     name:this.state.taskName,
+	 completedFlag:this.state.completedFlag,
+	 projectName:this.state.currentProject
+	
+  })
+		}).then(res => res.json())
+      .then(
+        (result) => {
+			console.log(result);
+			this.props.onItemChanged();
+        });
+
+	  }
+	render(){
+		
+		return <tr className={this.props.displayClass}><td colSpan="3"><table><tbody><tr><td>Project</td><td><MoveToProjectComponent onProjectChange ={this.onProjectChange} currentItem={this.props.currentItem} items={this.props.items}/></td></tr>
+			<tr><td>Task Type</td><td><TaskType currentTaskType={this.props.currentItem.taskType} onTaskTypeChange={this.handleTaskTypeChange}/></td></tr>
+			<tr><td>Area</td><td><AreaType currentAreaType={this.props.currentItem.taskDetails.area} onAreaTypeChange={this.onAreaTypeChange}/></td></tr>
+			<tr><td>Name</td><td><input type="text" onChange={this.handleTaskNameChange} value={this.state.taskName}/></td></tr>
+			<tr><td>Completed</td><td><input onChange={this.handeMarkAsCompleted} type="checkbox" checked={this.state.completedFlag} name="complete" value="Bike"/></td></tr>
+			<tr><td colSpan="2"><button onClick={this.doSave}>Save</button></td></tr>
+		</tbody></table></td></tr>
+	}
+}
+class MoveToProjectComponent extends React.Component {
+	constructor(props) { 
+		super(props);
+		//this.setProject = this.setProject.bind(this);
+		this.isCurrentProject = this.isCurrentProject.bind(this);
+		this.onProjectChange = this.onProjectChange.bind(this);
+		if(this.props.currentItem.taskDetails.project!=undefined)
+		{this.state={
+			currentProject:this.props.currentItem.taskDetails.project.name
+		}
+		}else
+		{this.state={
+			currentProject:''
+		}
+		}
+	}
+	
+	hasProject(item){
+	if(item.taskDetails.project!=null)
+		return true;
+	else
+		return false;
+	}
+	isAlreadyAdded(items,item){
+	for(var i=0;i<items.length;i++){
+		var citem =items[i];	
+		if(citem.key == item.taskDetails.project.name)
+			return true;
+	}
+		return false;
+	}
+	isCurrentProject(item){
+		if(this.props.currentItem!=null && this.props.currentItem.taskDetails.project!=null && this.props.currentItem.taskDetails.project.name==item.taskDetails.project.name)
+		 return true;
+		else
+	    	return false;
+	}
+	
+	getAllProjects(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
+		
+				allItems.push(<option  key={item.taskDetails.project.name}  name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);	 
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	getAllProjectsNew(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
+		
+				allItems.push(<option  key={item.taskDetails.project.name}  name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);	 
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	onProjectChange(event){
+		this.setState({currentProject: event.target.value});
+		this.props.onProjectChange(event.target.value);
+		
+	}
+	render() {
+	var allProjectsComponent=this.getAllProjectsNew();
+	var selectStart;
+	//if(this.props.currentItem!=null && this.props.currentItem.taskDetails.project!=null)
+	//return <select onChange={this.onProjectChange} value={this.state.currentProject}><option value = 'NONE'>NONE</option>
+	//	{allProjectsComponent}
+	//	</select>
+	return <div><input list="projects" onChange={this.onProjectChange} value={this.state.currentProject}></input><datalist id ="projects">{allProjectsComponent}</datalist></div>
+	// else
+	//return <select onChange={this.onProjectChange}><option  value = 'NONE'>NONE</option>
+	//	{allProjectsComponent}
+	//	</select>
+		
+	}
+}
+
+  ReactDOM.render(<Organizer  />,document.getElementById("mainbody")); 
+ //ReactDOM.render(<TaskTable items={items2.tasks}/>,document.getElementById("mainbody"));
  </script>
   </html>
   

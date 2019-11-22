@@ -30,8 +30,8 @@ public class Task extends OrganizerEntityBase{
 	@JoinColumn(name = "PROJECT_ID")
 	private Project project;
 	
-	@ManyToOne(cascade =CascadeType.ALL)
-	@JoinColumn(name = "AREA_ID")
+	
+	
 	private Area area;
 
 	public long getId() {
