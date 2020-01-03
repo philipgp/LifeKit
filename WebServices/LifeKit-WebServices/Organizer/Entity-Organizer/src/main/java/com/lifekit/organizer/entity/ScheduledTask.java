@@ -25,6 +25,7 @@ public class ScheduledTask extends OrganizerEntityBase implements TaskInterface{
 	@ManyToOne(cascade =CascadeType.ALL)
 	@JoinColumn(name = "TASK_DETAIL_ID")
 	private Task taskDetails;
+
 	
 	public Task getTaskDetails() {
 		return taskDetails;
@@ -46,5 +47,7 @@ public class ScheduledTask extends OrganizerEntityBase implements TaskInterface{
 	public TaskType getTaskType() {
 		return TaskType.SCHEDULED;
 	}
+
+
 	
 }

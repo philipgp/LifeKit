@@ -11,6 +11,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 
 
@@ -30,7 +31,9 @@ public class Task extends OrganizerEntityBase{
 	@JoinColumn(name = "PROJECT_ID")
 	private Project project;
 	
-	
+	@OneToOne(cascade =CascadeType.ALL)
+	@JoinColumn(name = "REMINDER_ID")
+	private Reminder reminder; 
 	
 	private Area area;
 
@@ -72,6 +75,14 @@ public class Task extends OrganizerEntityBase{
 
 	public void setCompletedDate(Date completedDate) {
 		this.completedDate = completedDate;
+	}
+
+	public Reminder getReminder() {
+		return reminder;
+	}
+
+	public void setReminder(Reminder reminder) {
+		this.reminder = reminder;
 	}
 	
 	

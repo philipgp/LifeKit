@@ -23,6 +23,10 @@ repositories {
 
 dependencies {
 compile( project(':Repository-Organizer') )
+
+//compile 'com.google.api-client:google-api-client:1.23.0'
+  //  compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
+    //compile 'com.google.apis:google-api-services-calendar:v3-rev305-1.23.0'
 // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
 //compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '2.2.1.RELEASE'
 

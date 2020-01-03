@@ -1,5 +1,8 @@
 package com.lifekit.organizer;
 
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lifekit.organizer.entity.TaskType;
 
@@ -12,10 +15,21 @@ public class TaskIUpdatorRequest {
 	private String area;
 	private String name;
 	private boolean completedFlag;
-	
+	//@JsonFormat(pattern ="dd-MMM-yyyy HH24:mi")
+	private String reminderTime;
+
 	public boolean isCompletedFlag() {
 		return completedFlag;
 	}
+
+	public String getReminderTime() {
+		return reminderTime;
+	}
+
+	public void setReminderTime(String reminderTime) {
+		this.reminderTime = reminderTime;
+	}
+
 	public void setCompletedFlag(boolean completedFlag) {
 		this.completedFlag = completedFlag;
 	}

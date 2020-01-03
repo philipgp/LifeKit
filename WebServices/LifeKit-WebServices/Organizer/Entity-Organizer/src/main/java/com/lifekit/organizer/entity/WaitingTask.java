@@ -25,6 +25,8 @@ public class WaitingTask extends OrganizerEntityBase implements TaskInterface{
 	@JoinColumn(name = "TASK_DETAIL_ID")
 	private Task taskDetails;
 
+	
+
 
 	public long getId() {
 		return id;
@@ -50,5 +52,7 @@ public class WaitingTask extends OrganizerEntityBase implements TaskInterface{
 	public TaskType getTaskType() {
 		return TaskType.WAITING;
 	}
+
+
 	
 }

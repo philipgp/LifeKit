@@ -1,0 +1,960 @@
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<head>
+			<style>
+
+	.displayNone { display:none; }
+			</style>
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+  <body>
+	<button id="authorize_button" style="display: none;">Authorize</button>
+	<button id="signout_button" style="display: none;">Sign Out</button>
+	<pre id="content" style="white-space: pre-wrap;"></pre>
+  <div id ="mainbody">
+  </div>
+  </body>
+  
+  <script type="text/javascript">
+	// Client ID and API key from the Developer Console
+	var CLIENT_ID = '1028458395150-ulrl6r3tr9amt314q6lu70f428ie127m.apps.googleusercontent.com';
+	  var API_KEY = 'AIzaSyAseV13OyPLbZnikHXeO6-dJQUZqUePlvw';
+	  var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
+	  var SCOPES = "https://www.googleapis.com/auth/calendar";
+	  var authorizeButton = document.getElementById('authorize_button');
+	  var signoutButton = document.getElementById('signout_button');
+	   /**
+       *  On load, called to load the auth2 library and API client library.
+       */
+	   function handleClientLoad() {
+        gapi.load('client:auth2', initClient);
+      }
+
+      /**
+       *  Initializes the API client library and sets up sign-in state
+       *  listeners.
+       */
+      function initClient() {
+        gapi.client.init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          discoveryDocs: DISCOVERY_DOCS,
+          scope: SCOPES
+        }).then(function () {
+          // Listen for sign-in state changes.
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+          // Handle the initial sign-in state.
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+          authorizeButton.onclick = handleAuthClick;
+          signoutButton.onclick = handleSignoutClick;
+        }, function(error) {
+          appendPre(JSON.stringify(error, null, 2));
+        });
+      }
+
+      /**
+       *  Called when the signed in status changes, to update the UI
+       *  appropriately. After a sign-in, the API is called.
+       */
+      function updateSigninStatus(isSignedIn) {
+        if (isSignedIn) {
+          authorizeButton.style.display = 'none';
+          signoutButton.style.display = 'block';
+          //listUpcomingEvents();
+        } else {
+          authorizeButton.style.display = 'block';
+          signoutButton.style.display = 'none';
+        }
+      }
+
+      /**
+       *  Sign in the user upon button click.
+       */
+      function handleAuthClick(event) {
+        gapi.auth2.getAuthInstance().signIn();
+      }
+
+      /**
+       *  Sign out the user upon button click.
+       */
+      function handleSignoutClick(event) {
+        gapi.auth2.getAuthInstance().signOut();
+      }
+
+      /**
+       * Append a pre element to the body containing the given message
+       * as its text node. Used to display the results of the API call.
+       *
+       * @param {string} message Text to be placed in pre element.
+       */
+      function appendPre(message) {
+        var pre = document.getElementById('content');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
+		</script>
+		<script async defer src="https://apis.google.com/js/api.js"
+		onload="this.onload=function(){};handleClientLoad()"
+		onreadystatechange="if (this.readyState === 'complete') this.onload()">
+	  </script>
+ <script  type="text/babel" >
+  
+ 
+  class TaskTypeFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.state = {currentTaskType: this.props.currentTaskType};
+	}
+	handleTaskTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onTaskTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentTaskType} onChange={this.handleTaskTypeChange}>
+			<option value="ALL">ALL</option>
+		<option value="ACTIVE">Active</option>
+		<option value="INBOX">Inbox</option>
+		<option value="WAITING">Waiting</option>
+		<option value="SCHEDULED">Scheduled</option>
+		</select>
+	}
+}
+/*
+ class TaskTypeFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.setTaskType = this.setTaskType.bind(this);
+	}
+	setTaskType(taskType){
+		this.props.onTaskTypeChange(taskType);
+	}
+	render() {
+		return <div>
+	
+		<input type ='radio' onChange={this.setTaskType.bind(this,'ALL')} name = 'tasktype' value = 'ALL'/><span>ALL</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'ACTIVE')} name = 'tasktype' value = 'ACTIVE'/><span>Active</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'INBOX')}  name = 'tasktype' value = 'INBOX'/><span>Inbox</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'SCHEDULED')}  name = 'tasktype' value = 'SCHEDULED'/><span>Scheduled</span>
+		<input type ='radio' onChange={this.setTaskType.bind(this,'WAITING')}  name = 'tasktype' value = 'WAITING'/><span>Waiting</span>
+		</div>
+	}
+}
+*/
+class ProjectFilterComponent extends React.Component {
+	constructor(props) { 
+		super(props);
+		this.setProject = this.setProject.bind(this);
+		this.state = {currentProject: 'ALL'};
+	}
+	setProject(project){
+		this.setState({currentProject: project.target.value});
+		this.props.onProjectChange(project.target.value);
+	}
+	hasProject(item){
+	if(item.taskDetails.project!=null)
+		return true;
+	else
+		return false;
+	}
+	isAlreadyAdded(items,item){
+	for(var i=0;i<items.length;i++){
+		var citem =items[i];	
+		if(citem.key == item.taskDetails.project.name)
+			return true;
+	}
+		return false;
+	}
+	
+	getAllProjects(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
+		allItems.push(<option key={item.taskDetails.project.name} name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	render() {
+	var allProjectsComponent=this.getAllProjects();
+		return <div>
+			<select value={this.state.currentProject} onChange={this.setProject}>
+		<option name = 'project' key="ALL" value = 'ALL'>ALL</option>
+		{allProjectsComponent}
+		</select>
+		</div>
+	}
+}
+var context="/organizer";
+
+class AddNewItemComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.addNewItem = this.addNewItem.bind(this);
+		
+	}
+	addNewItem(){
+		var textData =document.getElementById("input").value;	
+		 fetch(context+'/api/data/inboxtasks', {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    taskDetails:{
+		name:textData
+	}
+  })
+		}).then(res => res.json())
+      .then(
+        (result) => {
+			this.props.onItemAdded();
+        });
+
+
+	}
+	render(){
+		return <div><input id="input"  type="text" /><button type="button"  onClick={(e) => this.addNewItem(this.props.text, e)}>Add New Item</button></div>
+	}
+}
+class AreaFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleAreaTypeChange = this.handleAreaTypeChange.bind(this);
+		this.state = {currentAreaType: this.props.currentAreaType};
+	}
+	handleAreaTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onAreaTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentAreaType} onChange={this.handleAreaTypeChange}>
+			<option value="ALL">ALL</option>
+		<option value="PERSONAL">Personal</option>
+		<option value="WORK">Work</option>
+		<option value="FAMILY">Family</option>
+		
+		</select>
+	}
+}
+/*class AreaFilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.setArea = this.setArea.bind(this);
+	}
+	setArea(taskType){
+		this.props.onAreaTypeChange(taskType);
+	}
+	hasArea(item){
+	if(item.taskDetails.area!=null)
+		return true;
+	else
+		return false;
+	}
+	isAlreadyAdded(items,item){
+	for(var i=0;i<items.length;i++){
+		var citem =items[i];	
+		if(citem.key == item.taskDetails.area.name)
+			return true;
+	}
+		return false;
+	}
+	
+	getAllAreas(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasArea(item) && !this.isAlreadyAdded(allItems,item)){
+			allItems.push(<span key={item.taskDetails.area.name}><input type ='radio' onChange={this.setArea.bind(this,item.taskDetails.area.name)} name = 'areatype' value = 'ALL2'/><span>{item.taskDetails.area.name}</span></span>);
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	render() {
+	var allAreasComponent=this.getAllAreas();
+		return <div>
+		
+		<input type ='radio' onChange={this.setArea.bind(this,'ALL')} name = 'areatype' value = 'ALL'/><span>ALL</span>
+		{allAreasComponent}
+		</div>
+	}
+}
+*/
+ class FilterComponent extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> --Inbox-- </td></tr>
+	}
+}
+class Organizer extends React.Component {
+	constructor(props) {
+		super(props);
+		this.onItemAdded = this.onItemAdded.bind(this);
+		this.componentDidMount = this.componentDidMount.bind(this);
+    this.state = {
+      error: null,
+      isLoaded: false,
+      items: []
+    };
+	}
+	componentDidMount() {
+    fetch(context+"/getAll")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            isLoaded: true,
+            items: result.tasks
+          });
+        },
+        // Note: it's important to handle errors here
+        // instead of a catch() block so that we don't swallow
+        // exceptions from actual bugs in components.
+        (error) => {
+          this.setState({
+            isLoaded: true,
+            error
+          });
+        }
+      )
+  }
+  onItemAdded(){
+	this.componentDidMount();
+  }
+	render() {
+		//this.componentDidMount2();
+		const { error, isLoaded, items } = this.state;
+    if (error) {
+      return <div>Error: {error.message}</div>;
+    } else if (!isLoaded) {
+      return <div>Loading...</div>;
+    } else {
+      return (
+        <div><AddNewItemComponent onItemAdded={this.onItemAdded} text='asdf'/><TaskTable onItemChanged={this.onItemAdded} items ={items} /></div>
+      );
+    } 
+	}
+}
+  class TaskTable extends React.Component {
+	constructor(props) {
+
+		super(props);
+		this.state = {
+			filter: {
+				taskType: null,
+				project: null,
+				areaType:null,
+				showCompletedItems:false
+			}
+		};
+		this.setTaskType = this.setTaskType.bind(this);
+		this.setAreaType = this.setAreaType.bind(this);
+		this.setProject = this.setProject.bind(this);
+		this.setShowCompletedItems = this.setShowCompletedItems.bind(this);
+		
+	}
+	
+	stateFilter(state) {
+		return this.state.filter.taskType == state.taskType;
+	}
+	areaFilter(state) {
+		return this.state.filter.areaType == state.taskDetails.area;
+	}
+	completedItemsFilter(state) {
+		if(!this.state.filter.showCompletedItems){
+			if(state.taskDetails.completedDate==null)
+			return true;
+			else 
+			return false;
+		}
+		else
+		return true;
+	}
+	projectFilter(state) {
+		if(state.taskDetails.project!=null)
+			return this.state.filter.project == state.taskDetails.project.name;
+		else
+			return false;
+	}
+	applyfilter(items) {
+		if (this.state.filter.taskType != null) {
+			items = items.filter(this.stateFilter, this);
+		}
+		if (this.state.filter.areaType != null) {
+			items = items.filter(this.areaFilter, this);
+		}
+		if (this.state.filter.project != null) {
+			items = items.filter(this.projectFilter, this);
+		}
+		if (this.state.filter.showCompletedItems != null) {
+			items = items.filter(this.completedItemsFilter, this);
+		}
+		return items;
+	}
+	setAreaType(areaType){
+		var currentFilter =this.state.filter;
+		if(areaType!='ALL')
+			currentFilter.areaType = areaType;
+		else
+			currentFilter.areaType = null;
+		this.setState(this.state);
+	}
+	
+	setProject(project){
+		var currentFilter =this.state.filter;
+		if(project!='ALL')
+			currentFilter.project = project;
+		else
+			currentFilter.project = null;
+		this.setState(this.state);
+	}
+	
+	setTaskType(taskType){
+		var currentFilter =this.state.filter;
+		if(taskType!='ALL')
+			currentFilter.taskType = taskType;
+		else
+			currentFilter.taskType = null;
+		this.setState(this.state);
+	}
+	setShowCompletedItems(taskType){
+		var currentFilter =this.state.filter;
+		
+		currentFilter.showCompletedItems = taskType.target.checked;
+		
+		this.setState(this.state);
+	}
+	render() {
+		
+		const header = <thead><tr><td>ID</td><td>Name</td><td>Type</td></tr></thead>;
+		var filteredItems = this.applyfilter(this.props.items);
+		const filter = <table><thead><tr><td colSpan="2"><b>Filter</b></td></tr></thead><tbody>
+		<tr><td>Task Type</td><td><TaskTypeFilterComponent onTaskTypeChange={this.setTaskType}/></td></tr>
+		<tr><td>Area Type</td><td><AreaFilterComponent  onAreaTypeChange={this.setAreaType} /></td></tr>
+		<tr><td>Show completed items</td><td><input onChange={this.setShowCompletedItems} type="checkbox" name="incompletefilter" value="Bike"/></td></tr>
+		<tr><td>Project</td><td><ProjectFilterComponent items={filteredItems} onProjectChange={this.setProject} /></td></tr>
+		</tbody></table>;
+
+		var items=[];
+		for(var i=0;i<filteredItems.length;i++){
+		var item =filteredItems[i];
+		var detailKey =item.id+"taskItemKey";
+		//items.push(this.getElement(item));
+		items.push(<TaskItem  onItemChanged={this.props.onItemChanged} key={detailKey} item={item} items={filteredItems}/>);
+
+		}		 
+		//const items = filteredItems.map((item) => this.getElement(item,filteredItems));
+		const body = <tbody>{items}</tbody>;
+		return <div>{filter}<table>{header}{body}</table></div>;
+
+	}
+}
+class TaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state={
+			displayClass:"displayNone"
+		}
+		this.toggleDetails = this.toggleDetails.bind(this);
+	}
+
+	toggleDetails(){
+		if(this.state.displayClass=='displayNone')
+			this.setState({displayClass:""});
+		else
+			this.setState({displayClass:"displayNone"});
+	}
+	
+
+	getElement(item) {
+		var allItem;
+		if (item.taskType == 'INBOX') {
+			allItem= <InboxTaskItem toggleDetails={this.toggleDetails} key = {item.id}	item = {item}/>;
+		} else if (item.taskType == 'WAITING') {
+			allItem= <WaitingTaskItem toggleDetails={this.toggleDetails} key = {item.id} item = {item}/>;
+		}else if (item.taskType == 'ACTIVE') {
+			allItem= <ActiveTaskItem toggleDetails={this.toggleDetails} key = {item.id	} item = {item}/>;
+		}else if (item.taskType == 'SCHEDULED') {
+			allItem= <ScheduledTaskItem toggleDetails={this.toggleDetails} key = {	item.id	} item = {item}/>;
+		}
+		return allItem
+	}
+	render() {
+		var itemsAll=[];
+		var detailKey =this.props.item.id+"details";
+		itemsAll.push(this.getElement(this.props.item));
+		itemsAll.push(<TaskDetailsComponent onItemChanged ={this.props.onItemChanged} key={detailKey} displayClass={this.state.displayClass} currentItem={this.props.item} items={this.props.items}/>);
+		return itemsAll;
+	}
+}
+class ReminderComponent extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {reminderTime: this.props.reminderTime};
+		//this.addReminder = this.addReminder.bind(this);
+		this.changeTime = this.changeTime.bind(this);
+		
+	}
+	changeTime(event){
+
+		this.props.onChangeTime(event);
+	//	this.setState({reminderTime: event.target.value});
+	} 
+	
+	render() {
+		var t=this.props.reminderTime;
+		return <div><input placeholder="dd-MM-yyyy HH24:mm" onChange={this.changeTime} value={t}></input></div>
+	}
+}
+class InboxTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+		
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
+	}
+}
+class WaitingTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
+	}
+}
+class ScheduledTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
+	}
+}
+
+class ActiveTaskItem extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
+	}
+}
+var items = {
+  "tasks": [
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 1,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 2,
+        "name": "firstName",
+        "completedDate": null,
+        "project": null,
+        "area": null
+      },
+      "taskType": "INBOX"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 3,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 4,
+        "name": "firstName",
+        "completedDate": null,
+        "project": {
+          "createdDate": null,
+          "lastModifiedDate": null,
+          "id": 5,
+          "name": "asdf"
+        },
+        "area": null
+      },
+      "taskType": "INBOX"
+    }
+  ]
+}
+var items2 = {
+  
+  "tasks": [
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 1,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 2,
+		"area":"PERSONAL",
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "INBOX"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 3,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 4,
+		"area":"PERSONAL",
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "WAITING"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 5,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 6,
+		"area":"WORK",
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "SCHEDULED"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 7,
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 8,
+		"project":{
+			"name":"Doha Trip"
+			
+		},
+		"area":"FAMILY",
+        "name": "firstName",
+        "completedDate": null
+      },
+      "taskType": "ACTIVE"
+    },
+    {
+      "createdDate": null,
+      "lastModifiedDate": null,
+      "id": 9,
+	
+      "taskDetails": {
+        "createdDate": null,
+        "lastModifiedDate": null,
+        "id": 10,
+		"reminder":{
+			"time":"12-12-2020 05:00"
+		},
+		"area":"WORK",
+		"project":{
+			"name":"Bhopal Trip"
+			
+		},
+        "name": "firstNameWithReminder",
+        "completedDate": "22-May"
+      },
+      "taskType": "WAITING"
+    }		
+  ]
+
+}
+
+class TaskType extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.state = {currentTaskType: this.props.currentTaskType};
+	}
+	handleTaskTypeChange(event){
+		this.setState({currentTaskType: event.target.value});
+		this.props.onTaskTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentTaskType} onChange={this.handleTaskTypeChange}>
+		<option value="INBOX">Inbox</option>
+		<option value="ACTIVE">Active</option>
+		<option value="SCHEDULED">Scheduled</option>
+		<option value="WAITING">Waiting</option>
+		</select>
+	}
+}
+
+class AreaType extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleAreaTypeChange = this.handleAreaTypeChange.bind(this);
+		this.state = {currentAreaType: ''};
+		if(this.props.currentAreaType!=undefined)
+			this.state.currentAreaType=this.props.currentAreaType;
+	}
+	handleAreaTypeChange(event){
+		this.setState({currentAreaType: event.target.value});
+		this.props.onAreaTypeChange(event.target.value);
+	}
+	render() {
+		return <select value={this.state.currentAreaType} onChange={this.handleAreaTypeChange}>
+		<option value="">None</option>
+		<option value="PERSONAL">Personal</option>
+		<option value="WORK">Work</option>
+		<option value="FAMILY">Family</option>
+		
+		</select>
+	}
+}
+class TaskDetailsComponent extends React.Component {
+	constructor(props) { 
+		super(props);
+		this.handleTaskNameChange = this.handleTaskNameChange.bind(this);
+		this.handleTaskTypeChange = this.handleTaskTypeChange.bind(this);
+		this.onProjectChange = this.onProjectChange.bind(this);
+		this.onReminderTimeChange = this.onReminderTimeChange.bind(this);
+		this.onAreaTypeChange = this.onAreaTypeChange.bind(this);
+		this.handeMarkAsCompleted = this.handeMarkAsCompleted.bind(this);
+		this.addReminder = this.addReminder.bind(this);
+		this.doSave = this.doSave.bind(this);
+		this.state={
+			taskName:this.props.currentItem.taskDetails.name,
+			taskType:this.props.currentItem.taskType,
+			currentArea:this.props.currentItem.area,
+			completedDate:this.props.currentItem.taskDetails.completedDate,
+			completedFlag:false,
+			
+			currentProject:'',
+			
+		}
+		if(this.props.currentItem.taskDetails.completedDate!=null)
+		this.state.completedFlag=true;
+		if(this.props.currentItem.taskDetails.reminder!=null)
+			this.state.reminderTime=this.props.currentItem.taskDetails.reminder.timeString;
+		if(this.props.currentItem.taskDetails.project!=null){
+			this.state.currentProject=this.props.currentItem.taskDetails.project.name;
+		
+		}
+	
+
+	}
+	handleTaskNameChange(event) {
+    this.setState({taskName: event.target.value});
+ 	 }
+
+	  onProjectChange(event) {
+    this.setState({currentProject: event});
+	  }
+	  onReminderTimeChange(event) {
+    	this.setState({reminderTime: event.target.value});
+	  }
+	  compareTime(stateReminder,propsReminder){
+		  var propsReminderTime;
+		  if(propsReminder!=null)
+		  	propsReminderTime=propsReminder.timeString;
+		  if(stateReminder==propsReminderTime)	  
+			  return true;
+		  	else
+			  return false;
+		
+	  }
+	  addReminder(){
+		if(this.compareTime(this.state.reminderTime,this.props.currentItem.taskDetails.reminder)){
+			return;
+		}
+		//return;
+		var summary=this.props.currentItem.taskDetails.name;
+		var time =new Date(this.state.reminderTime);
+		var event = {
+  'summary': summary,
+  
+  'start': {
+    'dateTime': time,
+    'timeZone': 'Asia/Qatar'
+  },
+  'end': {
+    'dateTime': time,
+    'timeZone': 'Asia/Qatar'
+  },
+  
+  'reminders': {
+    'useDefault': false,
+    'overrides': [
+      
+      {'method': 'popup', 'minutes': 10}
+    ]
+  }
+};
+		var request = gapi.client.calendar.events.insert({
+    		  'calendarId': 'primary',
+    		  'resource': event
+			});
+			request.execute(function(event) {
+    		  alert('Event created: ' + event.htmlLink);
+    		});
+		
+	}
+
+	  onAreaTypeChange(event) {
+    this.setState({currentArea: event});
+ 	 }
+	  onChangeTime(event) {
+    this.setState({currentArea: event});
+ 	 }
+	  handeMarkAsCompleted(event){
+		  if(event.target.checked){
+			  this.setState({completedDate:new Date,completedFlag:true})
+		  }else{
+			this.setState({completedDate:null,completedFlag:false})
+		  }
+	  }
+
+	  handleTaskTypeChange(value) {
+    	this.setState({taskType: value});
+ 	 }
+	  doSave(){
+		  this.addReminder();
+		fetch(context+'/updateTask', {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+	  id:this.props.currentItem.taskDetails.id,
+	  previousTaskType:this.props.currentItem.taskType,
+	  currentTaskType:this.state.taskType,
+	  area:this.state.currentArea,
+     name:this.state.taskName,
+	 completedFlag:this.state.completedFlag,
+	 reminderTime:this.state.reminderTime,
+	 projectName:this.state.currentProject
+	
+  })
+		}).then(res => res.json())
+      .then(
+        (result) => {
+			console.log(result);
+			this.props.onItemChanged();
+        });
+
+	  }
+	render(){
+		
+		
+		return <tr className={this.props.displayClass}><td colSpan="3"><table><tbody><tr><td>Project</td><td><MoveToProjectComponent onProjectChange ={this.onProjectChange} currentItem={this.props.currentItem} items={this.props.items}/></td></tr>
+			<tr><td>Task Type</td><td><TaskType currentTaskType={this.props.currentItem.taskType} onTaskTypeChange={this.handleTaskTypeChange}/></td></tr>
+			<tr><td>Area</td><td><AreaType currentAreaType={this.props.currentItem.taskDetails.area} onAreaTypeChange={this.onAreaTypeChange}/></td></tr>
+			<tr><td>Name</td><td><input type="text" onChange={this.handleTaskNameChange} value={this.state.taskName}/></td></tr>
+			<tr><td>Completed</td><td><input onChange={this.handeMarkAsCompleted} type="checkbox" checked={this.state.completedFlag} name="complete" value="Bike"/></td></tr>
+			<tr><td>Reminder</td><td><ReminderComponent reminderTime= {this.state.reminderTime} onChangeTime={this.onReminderTimeChange}></ReminderComponent></td></tr>
+			
+			<tr><td colSpan="2"><button onClick={this.doSave}>Save</button></td></tr>
+		</tbody></table></td></tr>
+	}
+}
+class MoveToProjectComponent extends React.Component {
+	constructor(props) { 
+		super(props);
+		//this.setProject = this.setProject.bind(this);
+		this.isCurrentProject = this.isCurrentProject.bind(this);
+		this.onProjectChange = this.onProjectChange.bind(this);
+		if(this.props.currentItem.taskDetails.project!=undefined)
+		{this.state={
+			currentProject:this.props.currentItem.taskDetails.project.name
+		}
+		}else
+		{this.state={
+			currentProject:''
+		}
+		}
+	}
+	
+	hasProject(item){
+	if(item.taskDetails.project!=null)
+		return true;
+	else
+		return false;
+	}
+	isAlreadyAdded(items,item){
+	for(var i=0;i<items.length;i++){
+		var citem =items[i];	
+		if(citem.key == item.taskDetails.project.name)
+			return true;
+	}
+		return false;
+	}
+	isCurrentProject(item){
+		if(this.props.currentItem!=null && this.props.currentItem.taskDetails.project!=null && this.props.currentItem.taskDetails.project.name==item.taskDetails.project.name)
+		 return true;
+		else
+	    	return false;
+	}
+	
+	getAllProjects(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
+		
+				allItems.push(<option  key={item.taskDetails.project.name}  name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);	 
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	getAllProjectsNew(){
+	var allItems =[];//this.props.items.map((item)=>this.getItem(item));
+	
+	for(var i=0;i<this.props.items.length;i++){
+		var item =this.props.items[i];
+		if(this.hasProject(item) && !this.isAlreadyAdded(allItems,item)){
+		
+				allItems.push(<option  key={item.taskDetails.project.name}  name = 'project' value = {item.taskDetails.project.name}>{item.taskDetails.project.name}</option>);	 
+		}
+		//console.log(item)
+	}
+	return allItems;
+	}
+	onProjectChange(event){
+		this.setState({currentProject: event.target.value});
+		this.props.onProjectChange(event.target.value);
+		
+	}
+	render() {
+	var allProjectsComponent=this.getAllProjectsNew();
+	var selectStart;
+	//if(this.props.currentItem!=null && this.props.currentItem.taskDetails.project!=null)
+	//return <select onChange={this.onProjectChange} value={this.state.currentProject}><option value = 'NONE'>NONE</option>
+	//	{allProjectsComponent}
+	//	</select>
+	return <div><input list="projects" onChange={this.onProjectChange} value={this.state.currentProject}></input><datalist id ="projects">{allProjectsComponent}</datalist></div>
+	// else
+	//return <select onChange={this.onProjectChange}><option  value = 'NONE'>NONE</option>
+	//	{allProjectsComponent}
+	//	</select>
+		
+	}
+}
+
+  ReactDOM.render(<Organizer  />,document.getElementById("mainbody")); 
+// ReactDOM.render(<TaskTable items={items2.tasks}/>,document.getElementById("mainbody"));
+ </script>
+  </html>
+  
