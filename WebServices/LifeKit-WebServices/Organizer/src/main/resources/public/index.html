@@ -4,6 +4,11 @@
 			<style>
 
 	.displayNone { display:none; }
+	.passedoutreminder { background-color:orangered;}
+	.todaysreminder { background-color:orange;}
+	.scheduled	{background-color:#C0C0C0;}
+	.waiting{background-color:yellow;}
+	.active{background-color:rgb(0, 255, 0);}
 			</style>
 <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
@@ -197,9 +202,17 @@ class AddNewItemComponent extends React.Component {
 	constructor(props) {
 		super(props);
 		this.addNewItem = this.addNewItem.bind(this);
+		this.keyPressed = this.keyPressed.bind(this);
 		
 	}
+	keyPressed(event){
+		if (event.key === "Enter") {
+    this.addNewItem()
+  }
+
+	}
 	addNewItem(){
+		
 		var textData =document.getElementById("input").value;	
 		 fetch(context+'/api/data/inboxtasks', {
   method: 'POST',
@@ -215,13 +228,15 @@ class AddNewItemComponent extends React.Component {
 		}).then(res => res.json())
       .then(
         (result) => {
+			alert("Item added");
+			document.getElementById("input").value='';
 			this.props.onItemAdded();
         });
 
 
 	}
 	render(){
-		return <div><input id="input"  type="text" /><button type="button"  onClick={(e) => this.addNewItem(this.props.text, e)}>Add New Item</button></div>
+		return <div><input id="input" onKeyPress={this.keyPressed} autoComplete="off" type="text" /><button type="button"  onClick={(e) => this.addNewItem(this.props.text, e)}>Add New Item</button></div>
 	}
 }
 class AreaFilterComponent extends React.Component {
@@ -240,7 +255,7 @@ class AreaFilterComponent extends React.Component {
 		<option value="PERSONAL">Personal</option>
 		<option value="WORK">Work</option>
 		<option value="FAMILY">Family</option>
-		
+		<option value="FRIENDS">Friends</option>
 		</select>
 	}
 }
@@ -312,7 +327,25 @@ class Organizer extends React.Component {
     fetch(context+"/getAll")
       .then(res => res.json())
       .then(
+		
         (result) => {
+			result.tasks.sort(function(item1,item2){
+				if(item1.taskType=='INBOX')
+					return -1;
+				if(item2.taskType=='INBOX')
+					return 1;
+			if(item1.taskDetails.reminder!=null && item2.taskDetails.reminder!=null){
+				var item1reminder = Date.parse(item1.taskDetails.reminder.time);
+				var item2reminder = Date.parse(item2.taskDetails.reminder.time);
+				return item1reminder-item2reminder;
+			}else if(item1.taskDetails.reminder!=null && item2.taskDetails.reminder==null){
+				return -1;
+			}
+			else if(item1.taskDetails.reminder==null && item2.taskDetails.reminder!=null){
+				return 1;
+			}else
+			return 0;
+		});
           this.setState({
             isLoaded: true,
             items: result.tasks
@@ -504,6 +537,7 @@ class ReminderComponent extends React.Component {
 		this.state = {reminderTime: this.props.reminderTime};
 		//this.addReminder = this.addReminder.bind(this);
 		this.changeTime = this.changeTime.bind(this);
+		this.getSuggestedTimeTime = this.getSuggestedTimeTime.bind(this);
 		
 	}
 	changeTime(event){
@@ -511,10 +545,46 @@ class ReminderComponent extends React.Component {
 		this.props.onChangeTime(event);
 	//	this.setState({reminderTime: event.target.value});
 	} 
+	getSuggestedTimeTime(event){
+		var month = new Array();
+month[0] = "Jan";
+month[1] = "Feb";
+month[2] = "Mar";
+month[3] = "Apr";
+month[4] = "May";
+month[5] = "Jun";
+month[6] = "Jul";
+month[7] = "Aug";
+month[8] = "Sep";
+month[9] = "Oct";
+month[10] = "Nov";
+month[11] = "Dec";
+
+		var date = new Date();
+		if(event.target.name=='TODAY'){
+			date= new Date(new Date().getTime() + ( 60*60 * 1000));
+		}else if(event.target.name=='TOMORROW'){
+			date= new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000));
+		}else if(event.target.name=='NEXT_WEEK'){
+			date= new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000));
+		}
+		var formattedDate = ("0" + date.getDate()).slice(-2)+"-"+month[date.getMonth()]+"-"+date.getFullYear()+" "+date.getHours()+":"+date.getMinutes()
+		//alert(formattedDate);
+		this.props.onChangeTime(formattedDate);
+
+//alert('got clik')
+//this.props.onChangeTime(event);
+//	this.setState({reminderTime: event.target.value});
+} 
 	
 	render() {
 		var t=this.props.reminderTime;
-		return <div><input placeholder="dd-MM-yyyy HH24:mm" onChange={this.changeTime} value={t}></input></div>
+		return <div>
+			<div><input placeholder="dd-MM-yyyy HH24:mm" onChange={this.changeTime} value={t}></input></div>
+			<div>
+				<button name="TODAY" onClick={this.getSuggestedTimeTime}>Today</button><button name="TOMORROW" onClick={this.getSuggestedTimeTime}>Tomorrow</button><button name="NEXT_WEEK" onClick={this.getSuggestedTimeTime}>Next Week</button>
+				</div>
+			</div>
 	}
 }
 class InboxTaskItem extends React.Component {
@@ -529,17 +599,51 @@ class InboxTaskItem extends React.Component {
 class WaitingTaskItem extends React.Component {
 	constructor(props) {
 		super(props);
+var now = new Date();
+		if(this.props.item.taskDetails.reminder!=null 
+		&& this.props.item.taskDetails.reminder.time!=null){
+			var reminderTime = new Date(this.props.item.taskDetails.reminder.time);
+			if(reminderTime.getFullYear()== now.getFullYear()
+			&& reminderTime.getDate()== now.getDate()
+			&& reminderTime.getMonth()== now.getMonth())
+
+			this.state={class:"todaysreminder"};
+		else if (reminderTime<now){
+			this.state={class:"passedoutreminder"};
+		}else
+		this.state={class:"waiting"};
+		}
+		else
+		this.state={class:"waiting"};
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
+		return <tr className={this.state.class}><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
 	}
 }
 class ScheduledTaskItem extends React.Component {
 	constructor(props) {
 		super(props);
+		var now = new Date();
+		if(this.props.item.taskDetails.reminder!=null 
+		&& this.props.item.taskDetails.reminder.time!=null){
+			var reminderTime = new Date(this.props.item.taskDetails.reminder.time);
+			if(reminderTime.getFullYear()== now.getFullYear()
+			&& reminderTime.getDate()== now.getDate()
+			&& reminderTime.getMonth()== now.getMonth())
+
+			this.state={class:"todaysreminder"};
+		else if (reminderTime<now){
+			this.state={class:"passedoutreminder"};
+		}else
+		this.state={class:"scheduled"};
+		}
+		else
+		this.state={class:"scheduled"};
 	}
+	
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
+		
+		return <tr className={this.state.class}><td >{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td> <button onClick={this.props.toggleDetails}>Toggle Details</button></td></tr>
 	}
 }
 
@@ -548,7 +652,7 @@ class ActiveTaskItem extends React.Component {
 		super(props);
 	}
 	render() {
-		return <tr><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
+		return <tr className="active" ><td>{this.props.item.id}</td><td>{this.props.item.taskDetails.name}</td><td><button onClick={this.props.toggleDetails}>Toggle Details</button> </td></tr>
 	}
 }
 var items = {
@@ -717,7 +821,7 @@ class AreaType extends React.Component {
 		<option value="PERSONAL">Personal</option>
 		<option value="WORK">Work</option>
 		<option value="FAMILY">Family</option>
-		
+		<option value="FRIENDS">Friends</option>
 		</select>
 	}
 }
@@ -761,7 +865,10 @@ class TaskDetailsComponent extends React.Component {
     this.setState({currentProject: event});
 	  }
 	  onReminderTimeChange(event) {
-    	this.setState({reminderTime: event.target.value});
+		  if(event.target!=undefined)
+			this.setState({reminderTime: event.target.value});
+		 else
+		 	this.setState({reminderTime: event});	
 	  }
 	  compareTime(stateReminder,propsReminder){
 		  var propsReminderTime;
@@ -805,7 +912,7 @@ class TaskDetailsComponent extends React.Component {
     		  'resource': event
 			});
 			request.execute(function(event) {
-    		  alert('Event created: ' + event.htmlLink);
+    		  console('Event created: ' + event.htmlLink);
     		});
 		
 	}
@@ -850,6 +957,7 @@ class TaskDetailsComponent extends React.Component {
       .then(
         (result) => {
 			console.log(result);
+			alert('Item saved');
 			this.props.onItemChanged();
         });
 
@@ -953,8 +1061,9 @@ class MoveToProjectComponent extends React.Component {
 	}
 }
 
-  ReactDOM.render(<Organizer  />,document.getElementById("mainbody")); 
+ ReactDOM.render(<Organizer  />,document.getElementById("mainbody")); 
 // ReactDOM.render(<TaskTable items={items2.tasks}/>,document.getElementById("mainbody"));
+ //ReactDOM.render(<AddNewItemComponent items={items2.tasks}/>,document.getElementById("mainbody"));
  </script>
   </html>
   

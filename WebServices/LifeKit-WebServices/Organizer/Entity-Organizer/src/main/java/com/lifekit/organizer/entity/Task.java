@@ -36,6 +36,37 @@ public class Task extends OrganizerEntityBase{
 	private Reminder reminder; 
 	
 	private Area area;
+	
+	private Priority priority;
+	
+	private Effort effort;
+	
+	private TimeRequired time_required;
+	
+
+	public Effort getEffort() {
+		return effort;
+	}
+
+	public void setEffort(Effort effort) {
+		this.effort = effort;
+	}
+
+	public TimeRequired getTime_required() {
+		return time_required;
+	}
+
+	public void setTime_required(TimeRequired time_required) {
+		this.time_required = time_required;
+	}
+
+	public Priority getPriority() {
+		return priority;
+	}
+
+	public void setPriority(Priority priority) {
+		this.priority = priority;
+	}
 
 	public long getId() {
 		return id;

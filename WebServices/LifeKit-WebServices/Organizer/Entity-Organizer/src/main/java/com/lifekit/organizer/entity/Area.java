@@ -15,7 +15,7 @@ import javax.persistence.InheritanceType;
 //@Inheritance(strategy = InheritanceType.JOINED)
 public enum Area {
 
-	PERSONAL,WORK,FAMILY
+	PERSONAL,WORK,FAMILY,FRIENDS
 
 	
 	

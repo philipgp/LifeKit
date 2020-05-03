@@ -3,6 +3,7 @@ package com.lifekit.organizer.entity;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,6 +27,8 @@ public class WaitingTask extends OrganizerEntityBase implements TaskInterface{
 	private Task taskDetails;
 
 	
+	@Column(name="waiting_for")
+	private String waitingfor;
 
 
 	public long getId() {
@@ -51,6 +54,16 @@ public class WaitingTask extends OrganizerEntityBase implements TaskInterface{
 	@Override
 	public TaskType getTaskType() {
 		return TaskType.WAITING;
+	}
+
+
+	public String getWaitingfor() {
+		return waitingfor;
+	}
+
+
+	public void setWaitingfor(String waitingfor) {
+		this.waitingfor = waitingfor;
 	}
 
 
